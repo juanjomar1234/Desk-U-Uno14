@@ -107,8 +107,8 @@ jobs:
         username: u396608776
         password: ${{ secrets.SSH_PASSWORD }}
         scp_source: "./"
-        scp_target: ${{ secrets.DEPLOY_PATH }}
+        scp_target: "/home/u396608776/colaboradores"
         after_script: |
-          cd ${{ secrets.DEPLOY_PATH }}
+          cd /home/u396608776/colaboradores
           chmod +x setup_server.sh
           ./setup_server.sh
