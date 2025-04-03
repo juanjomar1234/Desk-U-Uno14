@@ -1,6 +1,5 @@
-const express = require('express');
-const app = express();
-const port = 3001;
+const createService = require('../base-service');
+const app = createService('user', 3001);
 
 // Middleware para procesar JSON
 app.use(express.json());
@@ -52,8 +51,4 @@ app.post('/login', (req, res) => {
     } else {
         res.status(401).json({ error: 'Credenciales inválidas' });
     }
-});
-
-app.listen(port, () => {
-    console.log(`User service listening at http://localhost:${port}`);
 });

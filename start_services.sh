@@ -15,7 +15,7 @@ start_service() {
     
     cd $service
     npm install --legacy-peer-deps
-    node server.js &
+    node server.js > ../logs/$service.log 2>&1 &
     cd ..
     
     # Esperar a que el servicio esté disponible
@@ -30,6 +30,9 @@ start_service() {
     echo -e "${RED}❌ Error iniciando $service${NC}"
     return 1
 }
+
+# Crear directorio de logs si no existe
+mkdir -p logs
 
 # Iniciar servicios principales
 start_service "gateway-service" 3000

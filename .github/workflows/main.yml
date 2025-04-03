@@ -46,17 +46,27 @@ jobs:
     
     - name: Start Services
       run: |
+        # Crear directorio de logs primero
+        mkdir -p logs
+        touch logs/gateway.log logs/user.log logs/message.log logs/file.log
+        
         chmod +x ./start_services.sh
-        ./start_services.sh
+        ./start_services.sh > logs/startup.log 2>&1
+        
         # Mostrar procesos Node.js
         echo "Procesos Node.js activos:"
         ps aux | grep node
+        
         # Mostrar puertos en uso
         echo "Puertos en uso:"
         netstat -tulpn | grep LISTEN
+        
+        # Esperar un momento para que los logs se generen
+        sleep 5
+        
         # Mostrar logs de servicios
         echo "Logs de servicios:"
-        tail -n 50 logs/*.log
+        cat logs/*.log || true
     
     - name: Prepare Test Environment
       run: |
