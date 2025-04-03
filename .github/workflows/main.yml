@@ -48,6 +48,16 @@ jobs:
       run: |
         chmod +x ./start_services.sh
         ./start_services.sh
+        # Esperar a que los servicios estén listos
+        sleep 10
+        # Verificar que los servicios están corriendo
+        netstat -tulpn | grep LISTEN
+    
+    - name: Prepare Test Environment
+      run: |
+        mkdir -p logs
+        touch logs/integration_tests.log
+        chmod 666 logs/integration_tests.log
     
     - name: Run Tests
       run: |
