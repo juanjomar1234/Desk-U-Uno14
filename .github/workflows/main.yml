@@ -98,19 +98,25 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Install sshpass
-      run: sudo apt-get install -y sshpass
+    - name: SFTP Deploy
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        username: 'u396608776'
+        server: '147.93.54.226'
+        port: 65002
+        local_path: './*'
+        remote_path: '${{ secrets.DEPLOY_PATH }}'
+        password: '${{ secrets.SSH_PASSWORD }}'
+        sftpArgs: '-o StrictHostKeyChecking=no'
     
-    - name: Debug Connection
-      env:
-        SSHPASS: ${{ secrets.SSH_PASSWORD }}
-      run: |
-        echo "Testing connection to server..."
-        sshpass -e ssh -o StrictHostKeyChecking=no -p 65002 u396608776@147.93.54.226 "echo 'Connection test'"
-    
-    - name: Deploy to Server
-      env:
-        SSHPASS: ${{ secrets.SSH_PASSWORD }}
-      run: |
-        sshpass -e scp -o StrictHostKeyChecking=no -P 65002 -r . u396608776@147.93.54.226:${{ secrets.DEPLOY_PATH }}
-        sshpass -e ssh -o StrictHostKeyChecking=no -p 65002 u396608776@147.93.54.226 "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
+    - name: Execute setup script
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: 147.93.54.226
+        username: u396608776
+        password: ${{ secrets.SSH_PASSWORD }}
+        port: 65002
+        script: |
+          cd ${{ secrets.DEPLOY_PATH }}
+          chmod +x setup_server.sh
+          ./setup_server.sh
