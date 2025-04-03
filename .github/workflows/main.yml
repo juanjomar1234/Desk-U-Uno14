@@ -98,22 +98,19 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Install SSH key
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-    
-    - name: Add known hosts
-      run: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -p 65002 147.93.54.226 >> ~/.ssh/known_hosts
+    - name: Install sshpass
+      run: sudo apt-get install -y sshpass
     
     - name: Debug Connection
+      env:
+        SSHPASS: ${{ secrets.SSH_PASSWORD }}
       run: |
         echo "Testing connection to server..."
-        ssh -v -p 65002 u396608776@147.93.54.226 "echo 'Connection test'"
+        sshpass -e ssh -o StrictHostKeyChecking=no -p 65002 u396608776@147.93.54.226 "echo 'Connection test'"
     
     - name: Deploy to Server
+      env:
+        SSHPASS: ${{ secrets.SSH_PASSWORD }}
       run: |
-        scp -P 65002 -r . u396608776@147.93.54.226:${{ secrets.DEPLOY_PATH }}
-        ssh -p 65002 u396608776@147.93.54.226 "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
+        sshpass -e scp -o StrictHostKeyChecking=no -P 65002 -r . u396608776@147.93.54.226:${{ secrets.DEPLOY_PATH }}
+        sshpass -e ssh -o StrictHostKeyChecking=no -p 65002 u396608776@147.93.54.226 "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
