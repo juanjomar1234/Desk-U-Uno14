@@ -1,13 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    console.log('Intentando login con:', { email, password });
+
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -17,52 +25,60 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password })
       });
 
+      const data = await response.json();
+      console.log('Respuesta del servidor:', data);
+
       if (response.ok) {
-        const data = await response.json();
+        console.log('Login exitoso, redirigiendo...');
         localStorage.setItem('token', data.token);
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       } else {
-        alert('Error en el login');
+        console.error('Error en login:', data.error);
+        toast.error(data.error || 'Error en el login');
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('Error en el servidor');
+      console.error('Error en la petición:', error);
+      toast.error('Error en el servidor');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center">Acceso Colaboradores</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              className="w-full p-3 border rounded"
-              required
-            />
-          </div>
-          <div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Contraseña"
-              className="w-full p-3 border rounded"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full p-3 text-white bg-blue-600 rounded hover:bg-blue-700"
-          >
-            Iniciar Sesión
-          </button>
-        </form>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">Acceso Colaboradores</CardTitle>
+          <CardDescription className="text-center text-muted-foreground">
+            Ingresa tus credenciales para continuar
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Contraseña"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              Iniciar Sesión
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 } 

@@ -5,8 +5,25 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { email, password } = body;
 
-    // Aquí iría la validación con el servicio de usuarios
-    const response = await fetch('http://localhost:3001/auth/login', {
+    // Para desarrollo/pruebas
+    if (email === 'admin@uno14.com' && password === 'Admin123!') {
+      return NextResponse.json({
+        token: 'test-token',
+        user: {
+          id: 1,
+          email: 'admin@uno14.com',
+          role: 'admin'
+        }
+      });
+    }
+
+    // URL del servicio según el entorno
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://uno14.trading/colaboradores/user-service'
+      : 'http://localhost:3001';
+
+    // Llamada al servicio de usuarios
+    const response = await fetch(`${baseUrl}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -15,6 +32,7 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
+      console.error('Error response:', await response.text());
       return NextResponse.json(
         { error: 'Credenciales inválidas' },
         { status: 401 }
@@ -23,10 +41,14 @@ export async function POST(request: Request) {
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error en login:', error);
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Error interno del servidor';
+      
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
