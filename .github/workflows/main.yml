@@ -107,15 +107,13 @@ jobs:
     - name: Debug Connection
       run: |
         echo "Testing connection to server..."
-        # Mostrar la dirección IP del servidor
-        nslookup ${{ secrets.SSH_HOST }}
         # Verificar puerto SSH personalizado
-        nc -zv ${{ secrets.SSH_HOST }} 65002 || true
+        nc -zv 147.93.54.226 65002 || true
     
     - name: Deploy to Server
       run: |
-        # Intentar conexión SSH con verbose y puerto personalizado
-        ssh -v -p 65002 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'Connection successful'"
+        # Intentar conexión SSH directamente con la IP
+        ssh -v -p 65002 u396608776@147.93.54.226 "echo 'Connection successful'"
         # Si la conexión funciona, proceder con el despliegue
-        scp -P 65002 -r . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
-        ssh -p 65002 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
+        scp -P 65002 -r . u396608776@147.93.54.226:${{ secrets.DEPLOY_PATH }}
+        ssh -p 65002 u396608776@147.93.54.226 "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
