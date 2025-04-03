@@ -110,5 +110,15 @@ jobs:
         scp_target: "/home/u396608776/domains/uno14.trading/public_html/colaboradores"
         after_script: |
           cd /home/u396608776/domains/uno14.trading/public_html/colaboradores
+          # Verificar archivos críticos
+          for file in base-service.js gateway-service/server.js user-service/server.js message-service/server.js file-service/server.js run_direct_tests.sh start_services.sh ecosystem.config.js frontend-service/package.json; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Error: Archivo $file no encontrado"
+              exit 1
+            else
+              echo "✅ Archivo $file encontrado"
+            fi
+          done
+          # Si todo está bien, ejecutar setup
           chmod +x setup_server.sh
           ./setup_server.sh
