@@ -17,11 +17,12 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
+        cache: 'npm'
     
     - name: Initialize npm in root
       run: |
         npm init -y
-        npm install --legacy-peer-deps
+        npm install --legacy-peer-deps --no-cache
     
     - name: Install Dependencies
       run: |
@@ -29,7 +30,7 @@ jobs:
           if [ -f "$d/package.json" ]; then
             echo "Installing dependencies for $d"
             cd $d
-            npm install --legacy-peer-deps
+            npm install --legacy-peer-deps --no-cache
             cd ..
           fi
         done
