@@ -115,8 +115,8 @@ jobs:
     
     - name: Deploy to Server
       run: |
-        # Intentar conexión SSH directamente con la IP
-        ssh -v -p 65002 u396608776@147.93.54.226 "echo 'Connection successful'"
+        # Intentar conexión SSH con verbose
+        ssh -v -p 65002 -i ~/.ssh/id_ed25519 u396608776@147.93.54.226 "echo 'Connection successful'"
         # Si la conexión funciona, proceder con el despliegue
-        scp -P 65002 -r . u396608776@147.93.54.226:${{ secrets.DEPLOY_PATH }}
-        ssh -p 65002 u396608776@147.93.54.226 "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
+        scp -P 65002 -i ~/.ssh/id_ed25519 -r . u396608776@147.93.54.226:${{ secrets.DEPLOY_PATH }}
+        ssh -p 65002 -i ~/.ssh/id_ed25519 u396608776@147.93.54.226 "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
