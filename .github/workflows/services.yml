@@ -1,0 +1,48 @@
+name: Microservices CI/CD
+
+on:
+  push:
+    paths:
+      - '*-service/**'
+      - '!frontend-service/**'
+    branches: [ main ]
+  pull_request:
+    paths:
+      - '*-service/**'
+      - '!frontend-service/**'
+    branches: [ main ]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [
+          'gateway', 'user', 'message', 'file', 'task',
+          'schedule', 'billing', 'mcp', 'contacts', 'boards',
+          'lists', 'cards', 'collaboration', 'branding',
+          'automation', 'crm', 'dependencies', 'timeline'
+        ]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: '${{ matrix.service }}-service/package-lock.json'
+    
+    - name: Install Dependencies
+      working-directory: ${{ matrix.service }}-service
+      run: npm install
+    
+    - name: Deploy Service to Hostinger
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ${{ matrix.service }}-service/
+        server-dir: /public_html/services/${{ matrix.service }}/ 

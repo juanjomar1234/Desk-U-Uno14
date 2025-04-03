@@ -1,0 +1,65 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Dependencies
+      run: |
+        for d in */; do
+          if [ -f "$d/package.json" ]; then
+            cd $d
+            npm install
+            cd ..
+          fi
+        done
+    
+    - name: Start Services
+      run: |
+        chmod +x ./start_services.sh
+        ./start_services.sh
+    
+    - name: Run Tests
+      run: |
+        chmod +x ./run_direct_tests.sh
+        ./run_direct_tests.sh
+    
+    - name: Stop Services
+      if: always()
+      run: |
+        chmod +x ./stop_services.sh
+        ./stop_services.sh
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+    
+    - name: Deploy to Server
+      run: |
+        scp -r . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"

@@ -1,0 +1,46 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    paths:
+      - 'frontend-service/**'
+    branches: [ main ]
+  pull_request:
+    paths:
+      - 'frontend-service/**'
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'frontend-service/package-lock.json'
+    
+    - name: Install Dependencies
+      working-directory: frontend-service
+      run: npm install
+    
+    - name: Build
+      working-directory: frontend-service
+      run: npm run build
+    
+    - name: Run Tests
+      working-directory: frontend-service
+      run: npm test
+    
+    - name: Deploy Frontend to Hostinger
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: frontend-service/.next/
+        server-dir: /public_html/app/ 
