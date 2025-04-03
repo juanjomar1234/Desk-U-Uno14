@@ -48,16 +48,26 @@ jobs:
       run: |
         chmod +x ./start_services.sh
         ./start_services.sh
-        # Esperar a que los servicios estén listos
-        sleep 10
-        # Verificar que los servicios están corriendo
+        # Mostrar procesos Node.js
+        echo "Procesos Node.js activos:"
+        ps aux | grep node
+        # Mostrar puertos en uso
+        echo "Puertos en uso:"
         netstat -tulpn | grep LISTEN
+        # Mostrar logs de servicios
+        echo "Logs de servicios:"
+        tail -n 50 logs/*.log
     
     - name: Prepare Test Environment
       run: |
         mkdir -p logs
         touch logs/integration_tests.log
         chmod 666 logs/integration_tests.log
+        # Verificar conectividad
+        for port in 3000 3001 3002 3003; do
+          echo "Verificando puerto $port:"
+          curl -v http://localhost:$port/health || true
+        done
     
     - name: Run Tests
       run: |
