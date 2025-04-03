@@ -1,2 +1,12 @@
-const createService = require('../base-service');
-const app = createService('file', 3003);
+const express = require('express');
+const app = express();
+const port = 3003;
+
+// Endpoint de salud
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', service: 'file' });
+});
+
+app.listen(port, () => {
+    console.log(`File service listening at http://localhost:${port}`);
+});
