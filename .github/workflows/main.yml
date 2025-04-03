@@ -21,7 +21,7 @@ jobs:
     - name: Initialize npm in root
       run: |
         npm init -y
-        npm install
+        npm install --legacy-peer-deps
     
     - name: Install Dependencies
       run: |
@@ -29,10 +29,20 @@ jobs:
           if [ -f "$d/package.json" ]; then
             echo "Installing dependencies for $d"
             cd $d
-            npm install
+            npm install --legacy-peer-deps
             cd ..
           fi
         done
+    
+    - name: Debug npm
+      if: failure()
+      run: |
+        echo "NPM Version:"
+        npm -v
+        echo "Node Version:"
+        node -v
+        echo "Package contents:"
+        cat frontend-service/package.json
     
     - name: Start Services
       run: |
