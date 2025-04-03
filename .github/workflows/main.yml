@@ -99,14 +99,15 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Deploy to Hostinger
-      uses: easingthemes/ssh-deploy@main
+      uses: kostya-ten/ssh-server-deploy@v4
       with:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        REMOTE_HOST: "147.93.54.226"
-        REMOTE_USER: "u396608776"
-        REMOTE_PORT: 65002
-        TARGET: ${{ secrets.DEPLOY_PATH }}
-        SCRIPT_AFTER: |
+        host: 147.93.54.226
+        port: 65002
+        username: u396608776
+        password: ${{ secrets.SSH_PASSWORD }}
+        scp_source: "./"
+        scp_target: ${{ secrets.DEPLOY_PATH }}
+        after_script: |
           cd ${{ secrets.DEPLOY_PATH }}
           chmod +x setup_server.sh
           ./setup_server.sh
