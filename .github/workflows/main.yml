@@ -103,20 +103,19 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-        # Obtener y guardar la clave del host
-        ssh-keyscan -p 65002 147.93.54.226 >> ~/.ssh/known_hosts
-        chmod 600 ~/.ssh/known_hosts
+        eval "$(ssh-agent -s)"
+        ssh-add ~/.ssh/id_ed25519
+        # Configurar SSH para usar el puerto personalizado
+        echo -e "Host hostinger\n\tHostName 147.93.54.226\n\tPort 65002\n\tUser u396608776\n\tIdentityFile ~/.ssh/id_ed25519\n\tStrictHostKeyChecking no" > ~/.ssh/config
+        chmod 600 ~/.ssh/config
     
     - name: Debug Connection
       run: |
         echo "Testing connection to server..."
-        # Verificar puerto SSH personalizado
-        nc -zv 147.93.54.226 65002 || true
+        ssh -v hostinger "echo 'Connection test'"
     
     - name: Deploy to Server
       run: |
-        # Intentar conexión SSH con verbose
-        ssh -v -p 65002 -i ~/.ssh/id_ed25519 u396608776@147.93.54.226 "echo 'Connection successful'"
-        # Si la conexión funciona, proceder con el despliegue
-        scp -P 65002 -i ~/.ssh/id_ed25519 -r . u396608776@147.93.54.226:${{ secrets.DEPLOY_PATH }}
-        ssh -p 65002 -i ~/.ssh/id_ed25519 u396608776@147.93.54.226 "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
+        # Usar el host configurado
+        scp -r . hostinger:${{ secrets.DEPLOY_PATH }}
+        ssh hostinger "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
