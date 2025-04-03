@@ -98,24 +98,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Setup SSH
+    - name: Install SSH key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Add known hosts
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        eval "$(ssh-agent -s)"
-        ssh-add ~/.ssh/id_ed25519
-        # Configurar SSH para usar el puerto personalizado
-        echo -e "Host hostinger\n\tHostName 147.93.54.226\n\tPort 65002\n\tUser u396608776\n\tIdentityFile ~/.ssh/id_ed25519\n\tStrictHostKeyChecking no" > ~/.ssh/config
-        chmod 600 ~/.ssh/config
+        ssh-keyscan -p 65002 147.93.54.226 >> ~/.ssh/known_hosts
     
     - name: Debug Connection
       run: |
         echo "Testing connection to server..."
-        ssh -v hostinger "echo 'Connection test'"
+        ssh -v -p 65002 u396608776@147.93.54.226 "echo 'Connection test'"
     
     - name: Deploy to Server
       run: |
-        # Usar el host configurado
-        scp -r . hostinger:${{ secrets.DEPLOY_PATH }}
-        ssh hostinger "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
+        scp -P 65002 -r . u396608776@147.93.54.226:${{ secrets.DEPLOY_PATH }}
+        ssh -p 65002 u396608776@147.93.54.226 "cd ${{ secrets.DEPLOY_PATH }} && chmod +x setup_server.sh && ./setup_server.sh"
