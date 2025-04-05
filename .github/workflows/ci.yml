@@ -73,6 +73,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
+    - name: Generate Prisma Client
+      run: npx prisma generate
+        
     - name: Build
       run: npm run build
       env:
@@ -83,9 +86,10 @@ jobs:
       run: |
         mkdir -p deploy
         cp -r .next deploy/
-        cp -r public deploy/
-        cp .env deploy/
+        cp -r public deploy/ || true  # No fallar si public no existe
+        cp .env deploy/ || true       # No fallar si .env no existe
         cp package.json deploy/
+        ls -la deploy/                # Verificar contenido
         
     - name: 📂 Deploy to Hostinger
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
