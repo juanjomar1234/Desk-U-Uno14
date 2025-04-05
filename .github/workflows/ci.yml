@@ -87,11 +87,9 @@ jobs:
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 65002
         local_path: |
-          .next/
-          package.json
-          package-lock.json
-          next.config.js
-          public/
+          .next/standalone/**
+          .next/static/**
+          public/**
           .env
         remote_path: ${{ secrets.DEPLOY_PATH }}
         sftp_only: true
