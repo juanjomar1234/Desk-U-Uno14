@@ -1,0 +1,18 @@
+# Configuración de despliegue para Vercel
+
+# Versión de Node.js
+nodeVersion = 18
+
+# Comandos de construcción
+[build]
+  command = "npm run build"
+  
+# Variables de entorno (se configurarán en la interfaz de Vercel)
+[build.environment]
+  NEXT_PUBLIC_API_URL = "https://nextjs-microservices.vercel.app/api"
+
+# Configuración de rutas
+[[redirects]]
+  source = "/(.*)"
+  destination = "/index.html"
+  status = 200

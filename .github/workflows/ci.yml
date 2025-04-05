@@ -1,0 +1,99 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      CI: true
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_db"
+      NEXTAUTH_SECRET: "test-secret"
+      NEXTAUTH_URL: "http://localhost:3000"
+      JWT_SECRET: "test-jwt-secret"
+      NODE_ENV: "test"
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Generate Prisma Client
+      run: npx prisma generate
+      
+    - name: Run migrations
+      run: npx prisma migrate deploy
+      
+    - name: Run tests
+      run: npm test -- --ci --coverage
+      
+    - name: Build project
+      run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build
+      run: npm run build
+      env:
+        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        
+    - name: 📂 Deploy to Hostinger
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        server: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 65002
+        local_path: |
+          .next/
+          package.json
+          package-lock.json
+          next.config.js
+          public/
+          .env
+        remote_path: ${{ secrets.DEPLOY_PATH }}
+        sftp_only: true
+        sftpArgs: '-o StrictHostKeyChecking=no'
+        delete_remote_files: true

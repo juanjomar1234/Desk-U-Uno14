@@ -1,0 +1,14 @@
+# Configuración para Railway (PostgreSQL)
+
+# Este archivo contiene la configuración necesaria para desplegar la base de datos PostgreSQL en Railway
+
+# Variables de entorno para Railway
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres_password
+POSTGRES_DB=nextjs_microservices
+
+# Configuración de la base de datos
+DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}
+
+# Configuración de Prisma para Railway
+PRISMA_CLIENT_ENGINE_TYPE=binary

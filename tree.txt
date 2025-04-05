@@ -1,0 +1,121 @@
+Desk-U-Uno14/
+│   └── .env
+│   └── .env.example
+│   └── .env.local
+│   └── README.md
+│   └── architecture.md
+│   └── jest.config.js
+│   └── jsconfig.json
+│   └── next-env.d.ts
+│   └── next.config.js
+│   └── package-lock.json
+│   └── package.json
+│   └── prepare_deployment.sh
+│   └── railway.toml
+│   └── supabase.config.js
+│   └── tsconfig.json
+│   └── update_tests.py
+│   └── vercel.json
+│   └───.github/
+│   │   └───workflows/
+│   │   │   └── deploy.yml
+│   │   │   └── tests.yml
+│   └───.swc/
+│   │   └───plugins/
+│   │   │   └───v7_windows_x86_64_0.104.3/
+│   └───config/
+│   │   └── secrets.env
+│   └───prisma/
+│   │   └── dev.db
+│   │   └── schema.prisma
+│   │   └───migrations/
+│   │   │   └── migration_lock.toml
+│   │   │   └───20250405041718_sqlite_migration/
+│   │   │   │   └── migration.sql
+│   └───src/
+│   │   └── middleware.ts
+│   │   └───app/
+│   │   │   └── layout.tsx
+│   │   │   └── providers.tsx
+│   │   │   └───(auth)/
+│   │   │   │   └── layout.tsx
+│   │   │   │   └───dashboard/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └───logs/
+│   │   │   │   │   └── page.tsx
+│   │   │   └───api/
+│   │   │   │   └───auth/
+│   │   │   │   │   └───[...nextauth]/
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   └───boards/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └───cards/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └───contacts/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └───events/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └───files/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └───logs/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └───messages/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └───tasks/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └───users/
+│   │   │   │   │   └── route.ts
+│   │   │   └───login/
+│   │   │   │   └── page.tsx
+│   │   └───components/
+│   │   │   └───layout/
+│   │   │   │   └── header.tsx
+│   │   │   │   └── sidebar.tsx
+│   │   │   └───ui/
+│   │   └───config/
+│   │   │   └── api.ts
+│   │   └───constants/
+│   │   │   └── api.ts
+│   │   └───hooks/
+│   │   │   └── useLogs.ts
+│   │   └───lib/
+│   │   │   └── auth.ts
+│   │   │   └── logger.ts
+│   │   │   └── prisma.ts
+│   │   │   └───logger/
+│   │   │   │   └── index.ts
+│   │   └───store/
+│   │   │   └── index.ts
+│   │   └───types/
+│   │   │   └── next-auth.d.ts
+│   │   │   └── session.ts
+│   └───tests/
+│   │   └── config.ts
+│   │   └── constants.ts
+│   │   └── integration.test.ts
+│   │   └── setup.ts
+│   │   └───services/
+│   │   │   └── analytics.test.ts
+│   │   │   └── auth.test.ts
+│   │   │   └── automation.test.ts
+│   │   │   └── billing.test.ts
+│   │   │   └── boards.test.ts
+│   │   │   └── branding.test.ts
+│   │   │   └── cards.test.ts
+│   │   │   └── collaboration.test.ts
+│   │   │   └── contacts.test.ts
+│   │   │   └── crm.test.ts
+│   │   │   └── dependencies.test.ts
+│   │   │   └── events.test.ts
+│   │   │   └── files.test.ts
+│   │   │   └── lists.test.ts
+│   │   │   └── logs.test.ts
+│   │   │   └── mcp.test.ts
+│   │   │   └── messages.test.ts
+│   │   │   └── notifications.test.ts
+│   │   │   └── platform-integration.test.ts
+│   │   │   └── schedule.test.ts
+│   │   │   └── settings.test.ts
+│   │   │   └── tasks.test.ts
+│   │   │   └── timeline.test.ts
+│   │   │   └── users.test.ts
