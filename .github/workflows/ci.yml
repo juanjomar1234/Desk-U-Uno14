@@ -86,7 +86,7 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 65002
-        local_path: '.next/standalone/,.next/static/,public/,.env'
+        local_path: '.next/,public/,.env,package.json'
         remote_path: ${{ secrets.DEPLOY_PATH }}
         sftp_only: true
         sftpArgs: '-o StrictHostKeyChecking=no'
