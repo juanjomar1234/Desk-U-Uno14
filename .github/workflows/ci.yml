@@ -36,7 +36,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 65002
-          source: ".next/,package.json,package-lock.json,server.js,ecosystem.config.js"
+          source: ".next/,package.json,package-lock.json,server.js,ecosystem.config.js,.env"
           target: ${{ secrets.DEPLOY_PATH }}
           strip_components: 0
 
