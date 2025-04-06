@@ -154,8 +154,8 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 65002
-        local_path: '.next/'
-        remote_path: ${{ secrets.DEPLOY_PATH }}/.next/
+        local_path: '.next'
+        remote_path: ${{ secrets.DEPLOY_PATH }}
         sftp_only: true
         sftpArgs: '-o StrictHostKeyChecking=no'
         delete_remote_files: false
