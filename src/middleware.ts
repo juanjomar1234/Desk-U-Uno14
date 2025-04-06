@@ -47,13 +47,10 @@ export async function middleware(request: NextRequest) {
 // Configurar en qué rutas se ejecuta el middleware
 export const config = {
   matcher: [
-    /*
-     * Match all paths except:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+    // Cambiar el matcher para ser más específico
+    '/',
+    '/login',
+    '/dashboard/:path*',
+    '/api/:path*'
+  ]
 };
