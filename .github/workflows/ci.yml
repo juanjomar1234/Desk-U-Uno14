@@ -81,7 +81,26 @@ jobs:
       env:
         NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+    - name: Verify build output
+      run: |
+        ls -la .next/
+        echo "Checking build artifacts..."
         
+    - name: Create remote directories
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 65002
+        script: |
+          mkdir -p ${{ secrets.DEPLOY_PATH }}/.next
+          mkdir -p ${{ secrets.DEPLOY_PATH }}/public
+
     - name: 📂 Deploy to Hostinger
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
@@ -118,7 +137,9 @@ jobs:
         local_path: |
           .env
           package.json
-        remote_path: ${{ secrets.DEPLOY_PATH }}  # Archivos de configuración en la raíz
+          server.js
+          ecosystem.config.js
+        remote_path: ${{ secrets.DEPLOY_PATH }}
         sftp_only: true
         sftpArgs: '-o StrictHostKeyChecking=no'
         delete_remote_files: false
