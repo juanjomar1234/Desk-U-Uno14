@@ -27,6 +27,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /
+          port: 21
           exclude: |
             **/.git*
             **/.git*/**
@@ -37,7 +38,8 @@ jobs:
         with:
           host: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 65002
           script: |
             chmod 755 server.js
             chmod 644 .htaccess
