@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions, DefaultUser } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { prisma } from '@/lib/prisma'
+import prisma from '@/lib/prisma'
 import { compare } from 'bcryptjs'
 import { User } from '@prisma/client'
 
