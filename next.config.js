@@ -17,12 +17,8 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: '/api/:path*',
-      },
-      {
-        source: '/health',
-        destination: '/api/health',
+        source: '/:path*',
+        destination: 'http://127.0.0.1:3000/:path*',
       }
     ];
   },
@@ -43,14 +39,14 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/api/:path*',
+        source: '/:path*',
         headers: [
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,DELETE,OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' }
         ],
-      },
-    ]
+      }
+    ];
   }
 };
 

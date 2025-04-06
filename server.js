@@ -14,7 +14,7 @@ function checkEnvVariables() {
 checkEnvVariables();
 
 const dev = false
-const hostname = '0.0.0.0'
+const hostname = '127.0.0.1'
 const port = parseInt(process.env.PORT || '3000', 10)
 
 console.log('📝 Starting server with config:', { dev, hostname, port });
@@ -38,9 +38,20 @@ app.prepare()
     
     const server = createServer(async (req, res) => {
       try {
-        // Log every request
+        // Log every request with more details
         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        console.log(`📥 [${new Date().toISOString()}] ${req.method} ${req.url} from ${ip}`);
+        const userAgent = req.headers['user-agent'];
+        const referer = req.headers['referer'];
+        
+        console.log('📥 Request details:', {
+          timestamp: new Date().toISOString(),
+          method: req.method,
+          url: req.url,
+          ip,
+          userAgent,
+          referer,
+          headers: req.headers
+        });
 
         // Add CORS headers
         res.setHeader('Access-Control-Allow-Origin', '*');
