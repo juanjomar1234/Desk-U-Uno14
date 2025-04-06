@@ -49,6 +49,12 @@ export async function middleware(request: NextRequest) {
     });
   }
 
+  logger.info('API request', {
+    path: request.nextUrl.pathname,
+    method: request.method,
+    userId: token?.sub
+  });
+
   return NextResponse.next();
 }
 

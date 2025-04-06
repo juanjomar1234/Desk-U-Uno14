@@ -7,44 +7,44 @@ const logger = createLogger({
     format.json()
   ),
   transports: [
-    new transports.Console({
-      format: format.combine(
-        format.colorize(),
-        format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
-      )
-    })
+    new transports.Console(),
+    new transports.File({ filename: 'logs/app.log' })
   ]
 });
 
-// Función simple para guardar en DB
-async function saveLog(level: string, message: string, metadata?: unknown) {
+// Función para guardar en DB
+async function logToDB(level: string, message: string, metadata?: unknown) {
   try {
     await prisma.log.create({
       data: {
         level: level.toUpperCase(),
         message,
         metadata: metadata ? JSON.stringify(metadata) : null,
-        timestamp: new Date(),
-        source: 'system'
+        source: 'production',
+        timestamp: new Date()
       }
     });
   } catch (error) {
-    console.error('Error saving log:', error);
+    console.error('Error saving to DB:', error);
   }
 }
 
-// Exportar funciones que guardan tanto en Winston como en DB
+// Interceptar todos los logs y guardarlos en DB
+logger.on('data', (info) => {
+  logToDB(info.level, info.message, info.metadata);
+});
+
 export default {
   error: (message: string, metadata?: unknown) => {
     logger.error(message);
-    saveLog('ERROR', message, metadata);
+    logToDB('ERROR', message, metadata);
   },
   info: (message: string, metadata?: unknown) => {
     logger.info(message);
-    saveLog('INFO', message, metadata);
+    logToDB('INFO', message, metadata);
   },
   warn: (message: string, metadata?: unknown) => {
     logger.warn(message);
-    saveLog('WARN', message, metadata);
+    logToDB('WARN', message, metadata);
   }
 };
