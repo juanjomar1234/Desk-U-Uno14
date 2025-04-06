@@ -8,12 +8,11 @@ interface State {
   setSidebarOpen: (open: boolean) => void;
 }
 
-const useStore = create<State>((set) => ({
+export const useStore = create<State>((set) => ({
   session: null,
   setSession: (session) => set({ session }),
   sidebarOpen: true,
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 }));
 
-export { useStore };
 export default useStore;

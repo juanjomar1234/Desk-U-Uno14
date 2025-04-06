@@ -3,7 +3,7 @@ import { getToken } from 'next-auth/jwt';
 import logger from '@/lib/logger';
 
 // Rutas que no requieren autenticación
-const publicPaths = ['/login', '/api/auth', '/_next', '/static', '/favicon.ico'];
+const publicPaths = ['/login', '/api/auth', '/_next', '/static', '/favicon.ico', '/logs'];
 
 // Middleware para autenticación y logging
 export async function middleware(request: NextRequest) {

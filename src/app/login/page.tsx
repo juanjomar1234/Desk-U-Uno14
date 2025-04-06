@@ -49,7 +49,7 @@ export default function LoginPage() {
               className="w-full p-2 border rounded"
             />
           </div>
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p className="text-red-500 mb-4">{error}</p>}
           <button
             type="submit"
             className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"

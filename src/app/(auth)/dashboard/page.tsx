@@ -1,12 +1,14 @@
 'use client';
 
 import { useSession } from 'next-auth/react'
+import { useStore } from '@/store'
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const sidebarOpen = useStore((state) => state.sidebarOpen)
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className={`min-h-screen bg-gray-100 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
       <div className="p-4">
         <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
         <div className="grid gap-4">

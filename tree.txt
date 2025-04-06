@@ -1,25 +1,29 @@
 Desk-U-Uno14/
 │   └── .env
+│   └── .env.development
 │   └── .env.example
 │   └── .env.local
 │   └── README.md
 │   └── architecture.md
+│   └── ecosystem.config.js
 │   └── jest.config.js
 │   └── jsconfig.json
+│   └── log-server.js
 │   └── next-env.d.ts
 │   └── next.config.js
 │   └── package-lock.json
 │   └── package.json
 │   └── prepare_deployment.sh
 │   └── railway.toml
+│   └── server.js
 │   └── supabase.config.js
 │   └── tsconfig.json
+│   └── tsconfig.seed.json
 │   └── update_tests.py
 │   └── vercel.json
 │   └───.github/
 │   │   └───workflows/
-│   │   │   └── deploy.yml
-│   │   │   └── tests.yml
+│   │   │   └── ci.yml
 │   └───.swc/
 │   │   └───plugins/
 │   │   │   └───v7_windows_x86_64_0.104.3/
@@ -28,6 +32,7 @@ Desk-U-Uno14/
 │   └───prisma/
 │   │   └── dev.db
 │   │   └── schema.prisma
+│   │   └── seed.ts
 │   │   └───migrations/
 │   │   │   └── migration_lock.toml
 │   │   │   └───20250405041718_sqlite_migration/
@@ -35,7 +40,9 @@ Desk-U-Uno14/
 │   └───src/
 │   │   └── middleware.ts
 │   │   └───app/
+│   │   │   └── error.tsx
 │   │   │   └── layout.tsx
+│   │   │   └── not-found.tsx
 │   │   │   └── providers.tsx
 │   │   │   └───(auth)/
 │   │   │   │   └── layout.tsx
@@ -73,12 +80,11 @@ Desk-U-Uno14/
 │   │   │   │   └── sidebar.tsx
 │   │   │   └───ui/
 │   │   └───config/
-│   │   │   └── api.ts
 │   │   └───constants/
-│   │   │   └── api.ts
 │   │   └───hooks/
 │   │   │   └── useLogs.ts
 │   │   └───lib/
+│   │   │   └── api.ts
 │   │   │   └── auth.ts
 │   │   │   └── logger.ts
 │   │   │   └── prisma.ts
