@@ -4,8 +4,12 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   console.log('🔍 Middleware path:', path);
 
-  // Permitir acceso a rutas específicas
-  if (path === '/' || path.startsWith('/api/logs')) {
+  // Permitir acceso a archivos estáticos y rutas específicas
+  if (
+    path === '/' || 
+    path === '/favicon.ico' ||
+    path.startsWith('/api/logs')
+  ) {
     console.log('✅ Permitiendo acceso a:', path);
     return NextResponse.next();
   }
@@ -23,6 +27,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image).*)',
   ],
 };
