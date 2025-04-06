@@ -9,8 +9,16 @@ const publicPaths = ['/login', '/api/auth', '/_next', '/static', '/favicon.ico',
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
+  // Log para debug
+  logger.info('Middleware request', { 
+    path,
+    method: request.method,
+    isAuthPage: path.startsWith('/login')
+  });
+  
   // Redirigir la ruta raíz a login
   if (path === '/') {
+    logger.info('Redirecting root to login');
     return NextResponse.redirect(new URL('/login', request.url));
   }
   
