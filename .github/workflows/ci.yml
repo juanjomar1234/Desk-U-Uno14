@@ -12,35 +12,7 @@ on:
     branches: [ master ]
 
 jobs:
-  check_changes:
-    runs-on: ubuntu-latest
-    outputs:
-      needs_build: ${{ steps.filter.outputs.build }}
-      needs_deploy: ${{ steps.filter.outputs.deploy }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            build:
-              - 'src/**'
-              - 'public/**'
-              - 'package.json'
-              - 'next.config.js'
-              - 'tsconfig.json'
-            deploy:
-              - 'src/**'
-              - 'server.js'
-              - 'ecosystem.config.js'
-              - '.env*'
-              - 'prisma/**'
-
   deploy:
-    needs: check_changes
-    if: |
-      github.ref == 'refs/heads/master' && 
-      (needs.check_changes.outputs.needs_deploy == 'true' || needs.check_changes.outputs.needs_build == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -49,25 +21,18 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-          cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
         
-      - name: Generate Prisma Client
-        run: npx prisma generate
-        
       - name: Build
-        if: needs.check_changes.outputs.needs_build == 'true'
         run: npm run build
         env:
+          NODE_ENV: production
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
-      - name: Clean old .next directory
+          
+      # Intentar diferentes estrategias de despliegue
+      - name: Deploy and configure
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -76,24 +41,31 @@ jobs:
           port: 65002
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
+            
+            # Limpiar completamente
+            pm2 stop all || true
             rm -rf .next
-            rm -rf .next/.next  # Por si existe la carpeta anidada
+            rm -rf node_modules
+            rm -f package-lock.json
+            
+            # Asegurar permisos del directorio
+            chmod -R 755 .
+            chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} .
+            
+            # Instalar dependencias limpias
+            npm install --production
+            
+            # Copiar build y configuración
+            cp -r /tmp/.next .
+            chmod -R 755 .next
+            
+            # Configurar PM2
+            npm install -g pm2
+            pm2 startup
+            pm2 start ecosystem.config.js --update-env
+            pm2 save
 
-      - name: Copy index.html to root
-        run: cp public/index.html .
-
-      - name: Deploy to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 65002
-          source: ".next/,src/,server.js,ecosystem.config.js,package.json,.env,index.html,public/favicon.ico"
-          target: ${{ secrets.DEPLOY_PATH }}
-          strip_components: 0
-
-      - name: Restart application
+      - name: Health check
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -101,9 +73,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 65002
           script: |
-            cd ${{ secrets.DEPLOY_PATH }}
-            # Asegurar permisos
-            chmod -R 755 .next
-            chmod 755 server.js
-            npm install -g pm2
-            pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
+            curl -I http://localhost:3000/api/health || true
+            pm2 logs --lines 50
