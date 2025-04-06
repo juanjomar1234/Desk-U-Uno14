@@ -3,227 +3,165 @@ name: CI/CD
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'README.md'
   pull_request:
     branches: [ master ]
 
 jobs:
-  test:
+  check_changes:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      CI: true
-      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_db"
-      NEXTAUTH_SECRET: "test-secret"
-      NEXTAUTH_URL: "http://localhost:3000"
-      JWT_SECRET: "test-jwt-secret"
-      NODE_ENV: "test"
-
+    outputs:
+      needs_build: ${{ steps.filter.outputs.build }}
+      needs_deploy: ${{ steps.filter.outputs.deploy }}
+      needs_config: ${{ steps.filter.outputs.config }}
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            build:
+              - 'src/**'
+              - 'public/**'
+              - 'package.json'
+              - 'next.config.js'
+              - 'tsconfig.json'
+            deploy:
+              - 'src/**'
+              - 'prisma/**'
+              - '.env*'
+            config:
+              - 'server.js'
+              - 'ecosystem.config.js'
+              - 'package.json'
+
+  build:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.needs_build == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
         
-    - name: Install dependencies
-      run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: .next
+          path: .next
+          retention-days: 1
+
+  config:
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.needs_config == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
       
-    - name: Generate Prisma Client
-      run: npx prisma generate
-      
-    - name: Run migrations
-      run: npx prisma migrate deploy
-      
-    - name: Run tests
-      run: npm test -- --ci --coverage
-      
-    - name: Build project
-      run: npm run build
+      - name: Create configuration files
+        run: |
+          # Crear .env
+          echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" > .env
+          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+          echo "NODE_ENV=production" >> .env
+          echo "PORT=3000" >> .env
+
+      - name: Upload config artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: config
+          path: |
+            .env
+            server.js
+            ecosystem.config.js
+          retention-days: 1
 
   deploy:
-    needs: test
+    needs: [check_changes, build, config]
+    if: |
+      github.ref == 'refs/heads/master' && 
+      (needs.check_changes.outputs.needs_deploy == 'true' || 
+       needs.check_changes.outputs.needs_build == 'true' ||
+       needs.check_changes.outputs.needs_config == 'true')
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
-    
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Use Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
+      - uses: actions/checkout@v3
       
-    - name: Generate Prisma Client
-      run: npx prisma generate
-        
-    - name: Build
-      run: npm run build
-      env:
-        NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-        NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      - name: Download build artifacts
+        if: needs.check_changes.outputs.needs_build == 'true'
+        uses: actions/download-artifact@v3
+        with:
+          name: .next
+          path: .next
 
-    - name: Verify build output
-      run: |
-        ls -la .next/
-        echo "Checking build artifacts..."
+      - name: Download config artifacts
+        if: needs.check_changes.outputs.needs_config == 'true'
+        uses: actions/download-artifact@v3
+        with:
+          name: config
+          path: ./
 
-    - name: Create remote directories
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        script: |
-          rm -rf ${{ secrets.DEPLOY_PATH }}/.next
-          mkdir -p ${{ secrets.DEPLOY_PATH }}/.next
+      - name: Get changed files
+        id: changed
+        uses: jitterbit/get-changed-files@v1
 
-    - name: 📂 Deploy .next directory
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-      with:
-        server: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        local_path: '.next'
-        remote_path: ${{ secrets.DEPLOY_PATH }}/.next
-        sftp_only: true
-        sftpArgs: '-o StrictHostKeyChecking=no'
-        delete_remote_files: false
+      - name: Deploy .next if rebuilt
+        if: needs.check_changes.outputs.needs_build == 'true'
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 65002
+          source: ".next"
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
 
-    - name: Create configuration files
-      run: |
-        # Crear .env
-        echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" > .env
-        echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
-        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-        echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
-        echo "NODE_ENV=production" >> .env
-        echo "PORT=3000" >> .env
+      - name: Deploy changed files
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 65002
+          source: ${{ steps.changed.outputs.added_modified }}
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
 
-        # Crear server.js
-        cat > server.js << 'EOL'
-        const path = require('path')
-        const { createServer } = require('http')
-        const { parse } = require('url')
-        const next = require('next')
-
-        const dev = process.env.NODE_ENV !== 'production'
-        const app = next({ dev })
-        const handle = app.getRequestHandler()
-
-        app.prepare().then(() => {
-          createServer((req, res) => {
-            const parsedUrl = parse(req.url, true)
-            const { pathname } = parsedUrl
-
-            if (pathname === '/') {
-              res.writeHead(302, { Location: '/login' })
-              res.end()
-              return
-            }
-
-            handle(req, res, parsedUrl)
-          }).listen(process.env.PORT || 3000, (err) => {
-            if (err) throw err
-            console.log(`> Ready on http://localhost:${process.env.PORT || 3000}`)
-          })
-        })
-        EOL
-
-        # Crear ecosystem.config.js
-        cat > ecosystem.config.js << 'EOL'
-        module.exports = {
-          apps: [{
-            name: 'next-app',
-            script: 'server.js',
-            instances: 1,
-            autorestart: true,
-            watch: false,
-            max_memory_restart: '1G',
-            env: {
-              NODE_ENV: 'production',
-              PORT: 3000
-            }
-          }]
-        }
-        EOL
-
-        # Verificar que los archivos existen
-        ls -la .env server.js ecosystem.config.js package.json
-
-    - name: 📂 Deploy server.js
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-      with:
-        server: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        local_path: 'server.js'
-        remote_path: ${{ secrets.DEPLOY_PATH }}/server.js
-        sftp_only: true
-        sftpArgs: '-o StrictHostKeyChecking=no'
-        delete_remote_files: false
-
-    - name: 📂 Deploy ecosystem.config.js
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-      with:
-        server: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        local_path: 'ecosystem.config.js'
-        remote_path: ${{ secrets.DEPLOY_PATH }}/ecosystem.config.js
-        sftp_only: true
-        sftpArgs: '-o StrictHostKeyChecking=no'
-        delete_remote_files: false
-
-    - name: 📂 Deploy package.json
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-      with:
-        server: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        local_path: 'package.json'
-        remote_path: ${{ secrets.DEPLOY_PATH }}/package.json
-        sftp_only: true
-        sftpArgs: '-o StrictHostKeyChecking=no'
-        delete_remote_files: false
-
-    - name: 📂 Deploy .env
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-      with:
-        server: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        local_path: '.env'
-        remote_path: ${{ secrets.DEPLOY_PATH }}/.env
-        sftp_only: true
-        sftpArgs: '-o StrictHostKeyChecking=no'
-        delete_remote_files: false
+      - name: Restart application
+        if: needs.check_changes.outputs.needs_config == 'true'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 65002
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            pm2 reload ecosystem.config.js
