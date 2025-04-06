@@ -42,15 +42,20 @@ jobs:
             **/tests/**
             **/prisma/**
             **/.github/**
-            README.md
-            .gitignore
-            .env*
-            .eslintrc*
-            jest.config.js
-            tsconfig.json
-            tree.py
-            tree.txt
-            update_tests.py
-            *.test.ts
-            *.config.ts
-            architecture.md
+            **/.env*
+            **/.eslintrc*
+            **/jest.config.js
+            **/tsconfig*
+            **/package*
+            **/README.md
+            **/*.test.ts
+            **/*.config.ts
+            **/architecture.md
+            **/tree.py
+            **/tree.txt
+            **/update_tests.py
+            **/prepare_deployment.sh
+            **/railway.toml
+            **/vercel.json
+            **/supabase.config.js
+            **/log-server.js
