@@ -3,29 +3,28 @@ import { getToken } from 'next-auth/jwt';
 import logger from '@/lib/logger';
 
 // Rutas que no requieren autenticación
-const publicPaths = ['/login', '/api/auth'];
+const publicPaths = ['/login', '/api/auth', '/_next', '/static'];
 
 // Middleware para autenticación y logging
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
   const path = request.nextUrl.pathname;
+  
+  // Permitir rutas públicas inmediatamente
+  if (publicPaths.some(p => path.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  const token = await getToken({ req: request });
   const isAuthPage = path.startsWith('/login');
 
   // Redirigir a login si no hay token y no es página de auth
   if (!token && !isAuthPage) {
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Redirigir a dashboard si hay token y está en página de auth
   if (token && isAuthPage) {
-    const dashboardUrl = new URL('/dashboard', request.url);
-    return NextResponse.redirect(dashboardUrl);
-  }
-
-  // Permitir rutas públicas
-  if (publicPaths.some(p => path.startsWith(p))) {
-    return NextResponse.next();
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Registrar acceso a rutas protegidas
