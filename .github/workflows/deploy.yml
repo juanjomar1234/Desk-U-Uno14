@@ -20,19 +20,6 @@ jobs:
       - name: Build
         run: npm run build
         
-      - name: Clean production server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: 65002
-          debug: true
-          script: |
-            pwd
-            whoami
-            echo "Testing SSH connection"
-        
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
