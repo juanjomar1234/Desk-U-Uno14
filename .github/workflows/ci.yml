@@ -85,24 +85,9 @@ jobs:
         NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-    - name: Verify build output
+    - name: Create configuration files
       run: |
-        ls -la .next/
-        echo "Checking build artifacts..."
-        
-    - name: Create remote directories
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        script: |
-          mkdir -p ${{ secrets.DEPLOY_PATH }}/.next
-          mkdir -p ${{ secrets.DEPLOY_PATH }}/public
-
-    - name: Create .env file
-      run: |
+        # Crear .env
         echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" > .env
         echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
@@ -111,15 +96,118 @@ jobs:
         echo "NODE_ENV=production" >> .env
         echo "PORT=3000" >> .env
 
-    - name: 📂 Deploy config files
+        # Crear server.js
+        cat > server.js << 'EOL'
+        const path = require('path')
+        const { createServer } = require('http')
+        const { parse } = require('url')
+        const next = require('next')
+
+        const dev = process.env.NODE_ENV !== 'production'
+        const app = next({ dev })
+        const handle = app.getRequestHandler()
+
+        app.prepare().then(() => {
+          createServer((req, res) => {
+            const parsedUrl = parse(req.url, true)
+            const { pathname } = parsedUrl
+
+            if (pathname === '/') {
+              res.writeHead(302, { Location: '/login' })
+              res.end()
+              return
+            }
+
+            handle(req, res, parsedUrl)
+          }).listen(process.env.PORT || 3000, (err) => {
+            if (err) throw err
+            console.log(`> Ready on http://localhost:${process.env.PORT || 3000}`)
+          })
+        })
+        EOL
+
+        # Crear ecosystem.config.js
+        cat > ecosystem.config.js << 'EOL'
+        module.exports = {
+          apps: [{
+            name: 'next-app',
+            script: 'server.js',
+            instances: 1,
+            autorestart: true,
+            watch: false,
+            max_memory_restart: '1G',
+            env: {
+              NODE_ENV: 'production',
+              PORT: 3000
+            }
+          }]
+        }
+        EOL
+
+        # Verificar que los archivos existen
+        ls -la .env server.js ecosystem.config.js package.json
+
+    - name: 📂 Deploy .next directory
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
         server: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 65002
-        local_path: '.env package.json server.js ecosystem.config.js'
-        remote_path: ${{ secrets.DEPLOY_PATH }}
+        local_path: '.next/'
+        remote_path: ${{ secrets.DEPLOY_PATH }}/.next/
+        sftp_only: true
+        sftpArgs: '-o StrictHostKeyChecking=no'
+        delete_remote_files: false
+
+    - name: 📂 Deploy server.js
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        server: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 65002
+        local_path: 'server.js'
+        remote_path: ${{ secrets.DEPLOY_PATH }}/server.js
+        sftp_only: true
+        sftpArgs: '-o StrictHostKeyChecking=no'
+        delete_remote_files: false
+
+    - name: 📂 Deploy ecosystem.config.js
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        server: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 65002
+        local_path: 'ecosystem.config.js'
+        remote_path: ${{ secrets.DEPLOY_PATH }}/ecosystem.config.js
+        sftp_only: true
+        sftpArgs: '-o StrictHostKeyChecking=no'
+        delete_remote_files: false
+
+    - name: 📂 Deploy package.json
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        server: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 65002
+        local_path: 'package.json'
+        remote_path: ${{ secrets.DEPLOY_PATH }}/package.json
+        sftp_only: true
+        sftpArgs: '-o StrictHostKeyChecking=no'
+        delete_remote_files: false
+
+    - name: 📂 Deploy .env
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        server: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 65002
+        local_path: '.env'
+        remote_path: ${{ secrets.DEPLOY_PATH }}/.env
         sftp_only: true
         sftpArgs: '-o StrictHostKeyChecking=no'
         delete_remote_files: false
