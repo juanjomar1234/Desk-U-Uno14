@@ -8,8 +8,12 @@ export async function GET() {
       env: process.env.NODE_ENV,
       uptime: process.uptime()
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Health check failed:', error);
-    return NextResponse.json({ status: 'error', error: error.message }, { status: 500 });
+    const errorMessage = error?.message || 'Unknown error';
+    return NextResponse.json(
+      { status: 'error', message: errorMessage },
+      { status: 500 }
+    );
   }
 } 

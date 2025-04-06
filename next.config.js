@@ -37,9 +37,6 @@ const nextConfig = {
   compress: true,
   generateEtags: true,
   distDir: '.next',
-  experimental: {
-    serverActions: true,
-  },
   async headers() {
     return [
       {
