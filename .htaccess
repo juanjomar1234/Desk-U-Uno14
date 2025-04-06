@@ -1,28 +1,12 @@
-# Enable modules
+# Basic configuration
 Options +FollowSymLinks
 RewriteEngine On
-
-# Debug logging
-LogLevel debug proxy:trace5
 
 # CORS Headers
 Header set Access-Control-Allow-Origin "*"
 Header set Access-Control-Allow-Methods "GET,POST,OPTIONS,PUT,DELETE"
 Header set Access-Control-Allow-Headers "Content-Type,Authorization"
 
-# Handle OPTIONS
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule ^(.*)$ $1 [R=200,L]
-
-# Proxy settings
-<IfModule mod_proxy.c>
-    ProxyPreserveHost On
-    ProxyRequests Off
-    ProxyPass / http://127.0.0.1:3000/
-    ProxyPassReverse / http://127.0.0.1:3000/
-</IfModule>
-
-# Custom error pages
-ErrorDocument 503 "Service temporarily unavailable - Node.js server may be down"
-ErrorDocument 403 "Access forbidden - Check permissions"
-ErrorDocument 500 "Internal server error - Check proxy settings"
+# Simple proxy to Node.js
+ProxyPass / http://127.0.0.1:3000/
+ProxyPassReverse / http://127.0.0.1:3000/
