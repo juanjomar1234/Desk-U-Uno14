@@ -36,9 +36,11 @@ jobs:
               - '.env*'
               - 'prisma/**'
 
-  build:
+  deploy:
     needs: check_changes
-    if: ${{ needs.check_changes.outputs.needs_build == 'true' }}
+    if: |
+      github.ref == 'refs/heads/master' && 
+      (needs.check_changes.outputs.needs_deploy == 'true' || needs.check_changes.outputs.needs_build == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -56,6 +58,7 @@ jobs:
         run: npx prisma generate
         
       - name: Build
+        if: needs.check_changes.outputs.needs_build == 'true'
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
@@ -63,35 +66,6 @@ jobs:
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-
-      - name: Save build output
-        if: success()
-        run: tar -czf .next.tar.gz .next
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: next-build
-          path: .next.tar.gz
-
-  deploy:
-    needs: [check_changes, build]
-    if: |
-      github.ref == 'refs/heads/master' && 
-      (needs.check_changes.outputs.needs_deploy == 'true' || needs.check_changes.outputs.needs_build == 'true')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Download build artifact
-        if: needs.check_changes.outputs.needs_build == 'true'
-        uses: actions/download-artifact@v2
-        with:
-          name: next-build
-
-      - name: Extract build files
-        if: needs.check_changes.outputs.needs_build == 'true'
-        run: tar -xzf .next.tar.gz
 
       - name: Deploy to server
         uses: appleboy/scp-action@master
