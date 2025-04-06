@@ -22,6 +22,17 @@ const nextConfig = {
         destination: '/api/:path*',
       },
     ];
+  },
+  poweredByHeader: false,
+  reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/login',
+        permanent: true,
+      },
+    ]
   }
 };
 
