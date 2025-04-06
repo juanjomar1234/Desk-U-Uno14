@@ -89,7 +89,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 65002
-          source: ".next/,src/,server.js,ecosystem.config.js,package.json,.env,index.html"
+          source: ".next/,src/,server.js,ecosystem.config.js,package.json,.env,index.html,public/favicon.ico"
           target: ${{ secrets.DEPLOY_PATH }}
           strip_components: 0
 
@@ -102,5 +102,8 @@ jobs:
           port: 65002
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
+            # Asegurar permisos
+            chmod -R 755 .next
+            chmod 755 server.js
             npm install -g pm2
             pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
