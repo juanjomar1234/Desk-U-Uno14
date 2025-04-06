@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Metadata } from 'next';
 import { Providers } from './providers';
+import { ThemeProvider } from 'next-themes'
 
 // Metadatos de la aplicación
 export const metadata: Metadata = {
@@ -19,10 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className="min-h-screen bg-background">
-        <Providers>
-          {children}
-        </Providers>
+      <body className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Providers>{children}</Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

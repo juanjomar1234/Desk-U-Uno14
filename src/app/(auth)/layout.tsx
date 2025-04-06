@@ -25,11 +25,11 @@ export default function AuthLayout({
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col min-w-0">
         <Header />
-        <main className="flex-1 w-full">
+        <main className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-900">
           {children}
         </main>
       </div>
