@@ -1,7 +1,18 @@
-import NextAuth, { NextAuthOptions } from 'next-auth'
+import NextAuth, { NextAuthOptions, DefaultUser } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from '@/lib/prisma'
 import { compare } from 'bcryptjs'
+import { User } from '@prisma/client'
+
+// Extender DefaultUser en lugar de User
+declare module "next-auth" {
+  interface Session {
+    user: DefaultUser & {
+      id: string
+      role: string | null
+    }
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -20,7 +31,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email }
         })
 
-        if (!user) {
+        if (!user || !user.password) {
           console.log('User not found:', credentials.email)
           return null
         }
@@ -34,13 +45,24 @@ export const authOptions: NextAuthOptions = {
 
         return {
           id: user.id,
+          name: user.name || '',  // Asegurar que no es null
           email: user.email,
-          name: user.name,
-          role: user.role
+          image: user.image || undefined,  // NextAuth espera undefined, no null
+          role: user.role || 'user'  // Valor por defecto si es null
         }
       }
     })
   ],
+  callbacks: {
+    session: ({ session, token }) => ({
+      ...session,
+      user: {
+        ...session.user,
+        id: token.sub,
+        role: token.role
+      }
+    })
+  },
   session: {
     strategy: 'jwt'
   },
