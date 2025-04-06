@@ -8,7 +8,17 @@
   "rules": {
     "no-console": "warn",
     "@typescript-eslint/no-unused-vars": "warn",
-    "@next/next/no-html-link-for-pages": "error",
-    "import/no-anonymous-default-export": "warn"
-  }
+    "@typescript-eslint/no-explicit-any": "warn",
+    "no-var": "error",
+    "import/no-anonymous-default-export": "warn",
+    "@next/next/no-html-link-for-pages": "error"
+  },
+  "overrides": [
+    {
+      "files": ["src/lib/logger/**/*.ts"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
 } 
