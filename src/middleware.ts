@@ -2,35 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import logger from '@/lib/logger';
 
+// Rutas que no requieren autenticación
+const publicPaths = ['/login', '/api/auth'];
+
 // Middleware para autenticación y logging
 export async function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
   const token = await getToken({ req: request });
+  const path = request.nextUrl.pathname;
 
-  // Rutas públicas
-  if (path === '/login' || path === '/register') {
-    if (token) {
-      logger.info('Usuario autenticado intentando acceder a ruta pública', {
-        userId: token.sub,
-        path
-      });
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
+  // Redirigir / a /login si no hay sesión
+  if (path === '/' && !token) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Permitir rutas públicas
+  if (publicPaths.some(p => path.startsWith(p))) {
     return NextResponse.next();
   }
 
-  // Rutas protegidas
-  if (!token && (path.startsWith('/api/') || path.startsWith('/dashboard'))) {
-    logger.warn('Acceso no autorizado', { path });
-    
-    if (path.startsWith('/api/')) {
-      return new NextResponse(
-        JSON.stringify({ error: 'No autorizado' }),
-        { status: 401, headers: { 'content-type': 'application/json' } }
-      );
-    }
-    
+  // Redirigir a login si no hay token
+  if (!token) {
     return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Redirigir / a /dashboard si hay sesión
+  if (path === '/' && token) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Registrar acceso a rutas protegidas
@@ -45,12 +42,16 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Configurar rutas para aplicar el middleware
+// Configurar en qué rutas se ejecuta el middleware
 export const config = {
   matcher: [
-    '/api/:path*',
-    '/dashboard/:path*',
-    '/login',
-    '/register'
-  ]
+    /*
+     * Match all request paths except:
+     * - _next/static (archivos estáticos)
+     * - _next/image (optimización de imágenes)
+     * - favicon.ico (icono)
+     * - public (archivos públicos)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 };
