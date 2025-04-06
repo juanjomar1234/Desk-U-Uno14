@@ -9,6 +9,26 @@ const port = parseInt(process.env.PORT || '3000', 10)
 const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
 
+function checkEnvVariables() {
+  const required = [
+    'NODE_ENV',
+    'NEXTAUTH_URL',
+    'NEXTAUTH_SECRET',
+    'JWT_SECRET',
+    'NEXT_PUBLIC_API_URL'
+  ];
+
+  const missing = required.filter(key => !process.env[key]);
+  if (missing.length > 0) {
+    console.error('❌ Missing required environment variables:', missing);
+    process.exit(1);
+  }
+
+  console.log('✅ Environment variables verified');
+}
+
+checkEnvVariables();
+
 app.prepare().then(() => {
   createServer(async (req, res) => {
     try {
