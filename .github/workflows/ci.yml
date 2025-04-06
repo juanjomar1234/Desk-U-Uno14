@@ -66,6 +66,16 @@ jobs:
           port: 65002
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
+            # Crear/actualizar .env
+            cat > .env << EOL
+            NODE_ENV=production
+            PORT=3000
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
+            LOG_LEVEL=info
+            EOL
             npm install --production
             npm install -g pm2
             pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
