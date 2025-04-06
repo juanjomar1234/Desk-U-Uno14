@@ -27,9 +27,11 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 65002
+          debug: true
           script: |
-            # Mantener solo los archivos necesarios
-            find . -maxdepth 1 ! -name '.next' ! -name 'node_modules' ! -name '.env' ! -name '.htaccess' ! -name 'ecosystem.config.js' ! -name 'next.config.js' ! -name 'server.js' ! -name 'package.json' -type f -exec rm -f {} +
+            pwd
+            whoami
+            echo "Testing SSH connection"
         
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
