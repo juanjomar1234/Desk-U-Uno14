@@ -17,7 +17,7 @@ out/
 .env.local
 .env.development.local
 .env.test.local
-.env.production.local
+!.env.production  # Permitir archivo de producción
 
 # Debug logs
 npm-debug.log*

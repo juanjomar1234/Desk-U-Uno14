@@ -1,6 +1,10 @@
 const { createServer } = require('http')
 const { parse } = require('url')
 const next = require('next')
+const path = require('path')
+require('dotenv').config({
+  path: path.resolve(process.cwd(), '.env.production')
+})
 
 const dev = false // Forzar modo producción
 const app = next({ dev })
