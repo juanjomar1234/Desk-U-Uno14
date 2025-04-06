@@ -4,20 +4,17 @@ import logger from '@/lib/logger';
 
 // GET /api/logs - Obtener logs con filtros
 export async function GET() {
+  console.log('📝 GET /api/logs called');
   try {
-    console.log('📝 API /logs ejecutándose');
-    
     const logs = await prisma.log.findMany({
       orderBy: { timestamp: 'desc' },
-      take: 10
+      take: 50
     });
-
-    console.log(`✅ Encontrados ${logs.length} logs`);
-    
+    console.log(`✅ Found ${logs.length} logs`);
     return NextResponse.json({ logs });
   } catch (error) {
-    console.error('❌ Error en API logs:', error);
-    return NextResponse.json({ error: 'Error fetching logs' }, { status: 500 });
+    console.error('❌ Error:', error);
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 }
 

@@ -9,7 +9,8 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        PORT: 3000
+        PORT: 3000,
+        NEXT_PUBLIC_API_URL: 'https://colaboradores.uno14.trading/api'
       }
     }
   ]
