@@ -101,18 +101,15 @@ jobs:
           mkdir -p ${{ secrets.DEPLOY_PATH }}/.next
           mkdir -p ${{ secrets.DEPLOY_PATH }}/public
 
-    - name: 📂 Deploy to Hostinger
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-      with:
-        server: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        local_path: '.next/'
-        remote_path: ${{ secrets.DEPLOY_PATH }}/.next/
-        sftp_only: true
-        sftpArgs: '-o StrictHostKeyChecking=no'
-        delete_remote_files: false
+    - name: Create .env file
+      run: |
+        echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" > .env
+        echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+        echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+        echo "NODE_ENV=production" >> .env
+        echo "PORT=3000" >> .env
 
     - name: 📂 Deploy config files
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
@@ -121,11 +118,7 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 65002
-        local_path: |
-          .env
-          package.json
-          server.js
-          ecosystem.config.js
+        local_path: '.env package.json server.js ecosystem.config.js'
         remote_path: ${{ secrets.DEPLOY_PATH }}
         sftp_only: true
         sftpArgs: '-o StrictHostKeyChecking=no'
