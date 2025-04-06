@@ -62,7 +62,22 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 65002
           script: |
+            cd /home/u396608776/domains/uno14.trading/public_html
+            npm install --production
+            pm2 delete all || true
+            pm2 start ecosystem.config.js
             chmod 755 server.js
             chmod 644 .htaccess
             chmod 644 .env
-            pm2 reload all
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 65002
+          script: |
+            cd /home/u396608776/domains/uno14.trading/public_html
+            pm2 list
+            curl http://localhost:3000/api/health
