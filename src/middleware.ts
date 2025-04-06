@@ -3,7 +3,15 @@ import { getToken } from 'next-auth/jwt';
 import logger from '@/lib/logger';
 
 // Rutas que no requieren autenticación
-const publicPaths = ['/login', '/api/auth', '/_next', '/static', '/favicon.ico', '/logs'];
+const publicPaths = [
+  '/login', 
+  '/api/auth', 
+  '/_next', 
+  '/static', 
+  '/favicon.ico',
+  '/logs',           // Ruta de la página
+  '/api/logs'        // Ruta de la API
+];
 
 // Middleware para autenticación y logging
 export async function middleware(request: NextRequest) {
@@ -13,31 +21,21 @@ export async function middleware(request: NextRequest) {
   logger.info('Middleware request', { 
     path,
     method: request.method,
-    isAuthPage: path.startsWith('/login')
+    url: request.url
   });
-  
-  // Redirigir la ruta raíz a login
-  if (path === '/') {
-    logger.info('Redirecting root to login');
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  
-  // Permitir rutas públicas inmediatamente
+
+  // Permitir acceso a rutas públicas sin autenticación
   if (publicPaths.some(p => path.startsWith(p))) {
+    logger.info('Acceso público permitido', { path });
     return NextResponse.next();
   }
 
+  // Para otras rutas, verificar autenticación
   const token = await getToken({ req: request });
-  const isAuthPage = path.startsWith('/login');
-
-  // Redirigir a login si no hay token y no es página de auth
-  if (!token && !isAuthPage) {
+  
+  if (!token) {
+    logger.warn('Unauthorized access attempt', { path });
     return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Redirigir a dashboard si hay token y está en página de auth
-  if (token && isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Registrar acceso a rutas protegidas
@@ -61,10 +59,11 @@ export async function middleware(request: NextRequest) {
 // Configurar en qué rutas se ejecuta el middleware
 export const config = {
   matcher: [
-    // Cambiar el matcher para ser más específico
     '/',
     '/login',
     '/dashboard/:path*',
-    '/api/:path*'
+    '/api/:path*',
+    '/logs',
+    '/api/logs'
   ]
 };
