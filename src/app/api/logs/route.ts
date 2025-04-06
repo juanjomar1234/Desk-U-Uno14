@@ -98,37 +98,52 @@ export async function GET(request: NextRequest) {
 // POST /api/logs - Crear un nuevo log
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { level, message, metadata, source, userId } = body;
-    
-    // Validación básica
-    if (!level || !message) {
-      return NextResponse.json(
-        { error: 'Se requieren los campos level y message' },
-        { status: 400 }
-      );
-    }
-    
-    // Crear log en la base de datos
-    const log = await prisma.log.create({
-      data: {
-        level,
-        message,
-        metadata: metadata ? metadata : null,
-        source: source || 'api',
-        userId,
-      },
+    // Crear algunos logs de prueba
+    await prisma.log.createMany({
+      data: [
+        {
+          level: 'INFO',
+          message: 'Test log 1',
+          timestamp: new Date(),
+          source: 'test'
+        },
+        {
+          level: 'ERROR',
+          message: 'Test error log',
+          timestamp: new Date(),
+          source: 'test'
+        },
+        {
+          level: 'WARN',
+          message: 'Test warning',
+          timestamp: new Date(),
+          source: 'test'
+        }
+      ]
     });
-    
-    // Registrar la creación del log
-    logger.info('Log creado a través de API', { logId: log.id });
-    
-    return NextResponse.json(log, { status: 201 });
-  } catch (error: any) {
-    logger.error('Error al crear log', { error: error.message });
-    return NextResponse.json(
-      { error: 'Error al crear log' },
-      { status: 500 }
-    );
+
+    return NextResponse.json({ message: 'Test logs created' });
+  } catch (error) {
+    console.error('Error creating test logs:', error);
+    return NextResponse.json({ error: 'Failed to create test logs' }, { status: 500 });
+  }
+}
+
+export async function getLatestLogs() {
+  try {
+    // Obtener los últimos 100 logs ordenados por fecha
+    const logs = await prisma.log.findMany({
+      orderBy: {
+        timestamp: 'desc'
+      },
+      take: 100
+    });
+
+    console.log('Logs encontrados:', logs.length); // Debug
+
+    return NextResponse.json(logs);
+  } catch (error) {
+    console.error('Error fetching logs:', error);
+    return NextResponse.json({ error: 'Error fetching logs' }, { status: 500 });
   }
 }
