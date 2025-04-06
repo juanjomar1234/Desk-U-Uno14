@@ -158,7 +158,7 @@ jobs:
         remote_path: ${{ secrets.DEPLOY_PATH }}
         sftp_only: true
         sftpArgs: '-o StrictHostKeyChecking=no'
-        delete_remote_files: false
+        delete_remote_files: true
 
     - name: 📂 Deploy server.js
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4

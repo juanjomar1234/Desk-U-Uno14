@@ -1,31 +1,27 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import Sidebar from '@/components/layout/sidebar'
+import Header from '@/components/layout/header'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import useStore from '@/store';
-import Sidebar from '../../components/layout/sidebar';
-import Header from '../../components/layout/header';
-
-// Layout para rutas autenticadas
 export default function AuthLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
-  const router = useRouter();
-  const session = useStore((state) => state.session);
+  const { status } = useSession()
+  const router = useRouter()
 
   useEffect(() => {
-    if (!session) {
-      router.push('/login');
+    if (status === 'unauthenticated') {
+      router.push('/login')
     }
-  }, [session, router]);
+  }, [status, router])
 
-  if (!session) {
-    return null;
+  if (status === 'loading') {
+    return <div>Loading...</div>
   }
 
   return (
@@ -40,5 +36,5 @@ export default function AuthLayout({
         </div>
       </div>
     </div>
-  );
+  )
 }
