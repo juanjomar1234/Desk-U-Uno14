@@ -19,6 +19,11 @@ jobs:
         
       - name: Build
         run: npm run build
+
+      - name: Clean build artifacts
+        run: |
+          rm -rf .next/
+          rm -rf node_modules/
         
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
