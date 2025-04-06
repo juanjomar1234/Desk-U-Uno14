@@ -1,4 +1,4 @@
-// Eliminar middleware por ahora
+// Deshabilitar completamente el middleware
 export const config = {
   matcher: []
 };
