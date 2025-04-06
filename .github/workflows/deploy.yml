@@ -39,9 +39,18 @@ jobs:
             **/.git*/**
             **/node_modules/**
             **/.next/**
+            **/tests/**
+            **/prisma/**
+            **/.github/**
             README.md
             .gitignore
             .env*
             .eslintrc*
             jest.config.js
             tsconfig.json
+            tree.py
+            tree.txt
+            update_tests.py
+            *.test.ts
+            *.config.ts
+            architecture.md
