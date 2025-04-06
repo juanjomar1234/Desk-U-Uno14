@@ -1,0 +1,18 @@
+# Habilitar el motor de reescritura
+RewriteEngine On
+
+# Si el archivo o directorio no existe
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirigir todas las peticiones al puerto 3000
+RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+
+# Headers CORS
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Allow-Methods "GET,POST,OPTIONS,PUT,DELETE"
+Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+
+# Forzar HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301] 
