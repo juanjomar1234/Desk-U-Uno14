@@ -19,11 +19,6 @@ jobs:
         
       - name: Build
         run: npm run build
-
-      - name: Clean build artifacts
-        run: |
-          rm -rf .next/
-          rm -rf node_modules/
         
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
@@ -35,27 +30,16 @@ jobs:
           port: 21
           dangerous-clean-slate: true
           exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.next/**
-            **/tests/**
-            **/prisma/**
-            **/.github/**
-            **/.env*
-            **/.eslintrc*
-            **/jest.config.js
-            **/tsconfig*
-            **/package*
-            **/README.md
-            **/*.test.ts
-            **/*.config.ts
-            **/architecture.md
-            **/tree.py
-            **/tree.txt
-            **/update_tests.py
-            **/prepare_deployment.sh
-            **/railway.toml
-            **/vercel.json
-            **/supabase.config.js
-            **/log-server.js
+            **/*
+            !.next/
+            !.next/**
+            !package.json
+            !package-lock.json
+            !next.config.js
+            !ecosystem.config.js
+            !.htaccess
+            !server.js
+            !src/middleware.ts
+            !src/app/api/health/route.ts
+            !public/index.html
+            !.env
