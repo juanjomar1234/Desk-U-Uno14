@@ -85,6 +85,35 @@ jobs:
         NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
+    - name: Verify build output
+      run: |
+        ls -la .next/
+        echo "Checking build artifacts..."
+
+    - name: Create remote directories
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 65002
+        script: |
+          rm -rf ${{ secrets.DEPLOY_PATH }}/.next
+          mkdir -p ${{ secrets.DEPLOY_PATH }}/.next
+
+    - name: 📂 Deploy .next directory
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      with:
+        server: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 65002
+        local_path: '.next'
+        remote_path: ${{ secrets.DEPLOY_PATH }}/.next
+        sftp_only: true
+        sftpArgs: '-o StrictHostKeyChecking=no'
+        delete_remote_files: false
+
     - name: Create configuration files
       run: |
         # Crear .env
@@ -146,19 +175,6 @@ jobs:
 
         # Verificar que los archivos existen
         ls -la .env server.js ecosystem.config.js package.json
-
-    - name: 📂 Deploy .next directory
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-      with:
-        server: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 65002
-        local_path: '.next'
-        remote_path: ${{ secrets.DEPLOY_PATH }}
-        sftp_only: true
-        sftpArgs: '-o StrictHostKeyChecking=no'
-        delete_remote_files: true
 
     - name: 📂 Deploy server.js
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
