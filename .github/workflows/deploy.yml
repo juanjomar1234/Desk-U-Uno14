@@ -20,6 +20,19 @@ jobs:
       - name: Build
         run: npm run build
         
+      - name: Clean remote directory
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 65002
+          script: |
+            cd /home/u396608776/domains/uno14.trading/public_html
+            rm -rf .next/
+            rm -rf node_modules/
+            find . -maxdepth 1 ! -name '.env' ! -name '.' ! -name '..' -exec rm -rf {} +
+        
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
@@ -32,14 +45,13 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/.next/**
             README.md
             .gitignore
-            .github/**
-            src/**
-            public/**
-            tsconfig.json
+            .env*
+            .eslintrc*
             jest.config.js
-            .eslintrc.json
+            tsconfig.json
             
       - name: Execute post-deploy script
         uses: appleboy/ssh-action@master
