@@ -6,8 +6,6 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/**'
-      - '.gitignore'
-      - 'README.md'
   pull_request:
     branches: [ master ]
 
@@ -20,7 +18,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: '18.x'
           
       - name: Install dependencies
         run: npm ci
@@ -30,9 +28,19 @@ jobs:
         env:
           NODE_ENV: production
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-          
-      # Intentar diferentes estrategias de despliegue
-      - name: Deploy and configure
+
+      - name: Deploy to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 65002
+          source: ".next/,package.json,package-lock.json,server.js,ecosystem.config.js"
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
+
+      - name: Configure server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -41,37 +49,6 @@ jobs:
           port: 65002
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-            
-            # Limpiar completamente
-            pm2 stop all || true
-            rm -rf .next
-            rm -rf node_modules
-            rm -f package-lock.json
-            
-            # Asegurar permisos del directorio
-            chmod -R 755 .
-            chown -R ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} .
-            
-            # Instalar dependencias limpias
             npm install --production
-            
-            # Copiar build y configuración
-            cp -r /tmp/.next .
-            chmod -R 755 .next
-            
-            # Configurar PM2
             npm install -g pm2
-            pm2 startup
-            pm2 start ecosystem.config.js --update-env
-            pm2 save
-
-      - name: Health check
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 65002
-          script: |
-            curl -I http://localhost:3000/api/health || true
-            pm2 logs --lines 50
+            pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
