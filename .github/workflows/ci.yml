@@ -115,14 +115,15 @@ jobs:
         delete_remote_files: false
 
     - name: 📂 Deploy public files
+      if: hashFiles('public/**/*') != ''  # Solo si hay archivos en public/
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
         server: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 65002
-        local_path: 'public/'  # Subir public directamente
-        remote_path: ${{ secrets.DEPLOY_PATH }}/public/  # A su carpeta correspondiente
+        local_path: 'public/'
+        remote_path: ${{ secrets.DEPLOY_PATH }}/public/
         sftp_only: true
         sftpArgs: '-o StrictHostKeyChecking=no'
         delete_remote_files: false
