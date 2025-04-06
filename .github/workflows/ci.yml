@@ -79,6 +79,9 @@ jobs:
             rm -rf .next
             rm -rf .next/.next  # Por si existe la carpeta anidada
 
+      - name: Copy index.html to root
+        run: cp public/index.html .
+
       - name: Deploy to server
         uses: appleboy/scp-action@master
         with:
@@ -86,7 +89,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 65002
-          source: ".next/,src/,server.js,ecosystem.config.js,package.json,.env"
+          source: ".next/,src/,server.js,ecosystem.config.js,package.json,.env,index.html"
           target: ${{ secrets.DEPLOY_PATH }}
           strip_components: 0
 
