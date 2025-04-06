@@ -12,7 +12,13 @@ export async function middleware(request: NextRequest) {
     url: request.url
   });
 
-  // Permitir todo acceso a /logs por ahora
+  // Redirigir la raíz a /logs
+  if (path === '/') {
+    console.log('🔄 Redirigiendo / a /logs');
+    return NextResponse.redirect(new URL('/logs', request.url));
+  }
+
+  // Permitir todo acceso a /logs
   if (path === '/logs' || path.startsWith('/api/logs')) {
     console.log('✅ Acceso a logs permitido');
     return NextResponse.next();
