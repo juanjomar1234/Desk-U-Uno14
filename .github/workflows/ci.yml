@@ -87,4 +87,5 @@ jobs:
           port: 65002
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-            pm2 reload ecosystem.config.js
+            npm install -g pm2
+            pm2 reload ecosystem.config.js || pm2 start ecosystem.config.js
