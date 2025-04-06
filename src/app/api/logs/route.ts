@@ -3,24 +3,20 @@ import prisma from '@/lib/prisma';
 import logger from '@/lib/logger';
 
 // GET /api/logs - Obtener logs con filtros
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '100');
+    console.log('📝 API /logs ejecutándose');
     
-    // Obtener los últimos logs ordenados por fecha
     const logs = await prisma.log.findMany({
-      orderBy: {
-        timestamp: 'desc'
-      },
-      take: limit
+      orderBy: { timestamp: 'desc' },
+      take: 10
     });
 
-    console.log('Logs encontrados:', logs.length);
-
+    console.log(`✅ Encontrados ${logs.length} logs`);
+    
     return NextResponse.json({ logs });
   } catch (error) {
-    console.error('Error fetching logs:', error);
+    console.error('❌ Error en API logs:', error);
     return NextResponse.json({ error: 'Error fetching logs' }, { status: 500 });
   }
 }
