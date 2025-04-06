@@ -3,13 +3,14 @@ const { createServer } = require('http')
 const { parse } = require('url')
 const next = require('next')
 const logger = require('./src/lib/logger').default
+const { middleware } = require('./src/middleware')
 
 const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
-  createServer((req, res) => {
+  createServer(async (req, res) => {
     const parsedUrl = parse(req.url, true)
     const { pathname } = parsedUrl
     
@@ -19,21 +20,36 @@ app.prepare().then(() => {
       method: req.method
     })
 
-    // Permitir acceso directo a /logs
-    if (pathname === '/logs' || pathname.startsWith('/api/logs')) {
-      logger.info('Acceso a logs', { path: pathname })
-      handle(req, res, parsedUrl)
-      return
-    }
-    
-    // Redirigir / a /login
-    if (pathname === '/') {
-      res.writeHead(302, { Location: '/login' })
-      res.end()
-      return
-    }
+    try {
+      // Convertir req a NextRequest para el middleware
+      const request = new Request(req.url, {
+        method: req.method,
+        headers: new Headers(req.headers)
+      })
 
-    handle(req, res, parsedUrl)
+      // Ejecutar middleware
+      const response = await middleware(request)
+      
+      // Si el middleware redirecciona o responde, respetar esa respuesta
+      if (response) {
+        res.writeHead(response.status, response.headers)
+        res.end(response.body)
+        return
+      }
+
+      // Continuar con el manejo normal si el middleware permite
+      if (pathname === '/') {
+        res.writeHead(302, { Location: '/login' })
+        res.end()
+        return
+      }
+
+      handle(req, res, parsedUrl)
+    } catch (error) {
+      logger.error('Error en servidor:', error)
+      res.writeHead(500)
+      res.end('Internal Server Error')
+    }
   }).listen(process.env.PORT || 3000, (err) => {
     if (err) throw err
     logger.info('Server started', {
