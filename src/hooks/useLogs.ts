@@ -35,7 +35,7 @@ export interface LogsResponse {
 
 // Hook personalizado para gestionar los logs
 export function useLogs() {
-  const [logs, setLogs] = useState<Log[]>([]);
+  const [logs, setLogs] = useState<unknown[]>([]);
   const [pagination, setPagination] = useState<LogPagination>({
     total: 0,
     page: 1,
@@ -52,12 +52,14 @@ export function useLogs() {
     async function fetchLogs() {
       try {
         const response = await fetch('/api/logs');
+        console.log('Response status:', response.status);
         if (!response.ok) throw new Error('Error fetching logs');
-        const data = await response.json() as LogsResponse;
+        const data = await response.json();
+        console.log('Logs data:', data);
         setLogs(data.logs || []);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Error fetching logs:', message);
+        console.error('Error in useLogs:', message);
         setError(message);
       } finally {
         setLoading(false);
@@ -65,9 +67,6 @@ export function useLogs() {
     }
 
     fetchLogs();
-    // Refrescar cada 5 segundos
-    const interval = setInterval(fetchLogs, 5000);
-    return () => clearInterval(interval);
   }, []);
   
   // Función para obtener logs con filtros
