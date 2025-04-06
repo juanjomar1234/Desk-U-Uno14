@@ -1,6 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import logger from "@/lib/logger";
 import { User } from "@/types/session";
 import { API_ENDPOINTS, getApiUrl } from '@/lib/api';
