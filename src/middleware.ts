@@ -3,11 +3,16 @@ import { getToken } from 'next-auth/jwt';
 import logger from '@/lib/logger';
 
 // Rutas que no requieren autenticación
-const publicPaths = ['/login', '/api/auth', '/_next', '/static'];
+const publicPaths = ['/login', '/api/auth', '/_next', '/static', '/favicon.ico'];
 
 // Middleware para autenticación y logging
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  
+  // Redirigir la ruta raíz a login
+  if (path === '/') {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
   
   // Permitir rutas públicas inmediatamente
   if (publicPaths.some(p => path.startsWith(p))) {
@@ -43,12 +48,12 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all paths except:
      * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
