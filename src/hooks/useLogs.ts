@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -8,7 +10,7 @@ export interface Log {
   id: string;
   level: LogLevel;
   message: string;
-  metadata: any;
+  metadata: unknown;
   source: string;
   timestamp: string;
   userId?: string;
@@ -40,11 +42,33 @@ export function useLogs() {
     limit: 10,
     pages: 0,
   });
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    async function fetchLogs() {
+      try {
+        const response = await fetch('/api/logs');
+        if (!response.ok) throw new Error('Error fetching logs');
+        const data = await response.json() as LogsResponse;
+        setLogs(data.logs || []);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Error fetching logs:', message);
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchLogs();
+    // Refrescar cada 5 segundos
+    const interval = setInterval(fetchLogs, 5000);
+    return () => clearInterval(interval);
+  }, []);
   
   // Función para obtener logs con filtros
   const fetchLogs = async (
