@@ -3,8 +3,8 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import Sidebar from '@/components/layout/sidebar'
 import Header from '@/components/layout/header'
+import Sidebar from '@/components/layout/sidebar'
 
 export default function AuthLayout({
   children,
@@ -25,15 +25,13 @@ export default function AuthLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="flex">
-        <Sidebar />
-        <div className="flex-1">
-          <Header />
-          <main className="flex-1 overflow-y-auto p-4">
-            {children}
-          </main>
-        </div>
+    <div className="min-h-screen flex">
+      <Sidebar />
+      <div className="flex-1">
+        <Header />
+        <main className="flex-1 w-full">
+          {children}
+        </main>
       </div>
     </div>
   )
