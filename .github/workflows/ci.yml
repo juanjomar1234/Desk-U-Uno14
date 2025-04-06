@@ -29,6 +29,23 @@ jobs:
           NODE_ENV: production
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
+      # Primero limpiar directorios innecesarios
+      - name: Clean production directory
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 65002
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            pm2 stop all || true
+            rm -rf public/
+            rm -rf src/
+            rm -rf logs/
+            rm -rf node_modules/
+
+      # Luego desplegar solo los archivos necesarios
       - name: Deploy to server
         uses: appleboy/scp-action@master
         with:
