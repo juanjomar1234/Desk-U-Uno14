@@ -20,19 +20,6 @@ jobs:
       - name: Build
         run: npm run build
         
-      - name: Clean remote directory
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: 65002
-          script: |
-            cd /home/u396608776/domains/uno14.trading/public_html
-            rm -rf .next/
-            rm -rf node_modules/
-            find . -maxdepth 1 ! -name '.env' ! -name '.' ! -name '..' -exec rm -rf {} +
-        
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
@@ -52,31 +39,3 @@ jobs:
             .eslintrc*
             jest.config.js
             tsconfig.json
-            
-      - name: Execute post-deploy script
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: 65002
-          script: |
-            cd /home/u396608776/domains/uno14.trading/public_html
-            npm install --production
-            pm2 delete all || true
-            pm2 start ecosystem.config.js
-            chmod 755 server.js
-            chmod 644 .htaccess
-            chmod 644 .env
-
-      - name: Verify deployment
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: 65002
-          script: |
-            cd /home/u396608776/domains/uno14.trading/public_html
-            pm2 list
-            curl http://localhost:3000/api/health
