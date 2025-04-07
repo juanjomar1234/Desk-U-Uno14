@@ -2,11 +2,25 @@
 Options +FollowSymLinks
 RewriteEngine On
 
+# Hostinger specific
+<IfModule mod_suphp.c>
+    suPHP_ConfigPath /home/u396608776/domains/uno14.trading/public_html
+</IfModule>
+
 # CORS Headers
 Header set Access-Control-Allow-Origin "*"
 Header set Access-Control-Allow-Methods "GET,POST,OPTIONS,PUT,DELETE"
 Header set Access-Control-Allow-Headers "Content-Type,Authorization"
 
-# Simple proxy to Node.js
-ProxyPass / http://127.0.0.1:3000/
-ProxyPassReverse / http://127.0.0.1:3000/
+# Proxy settings with specific user
+<IfModule mod_proxy.c>
+    ProxyPreserveHost On
+    ProxyRequests Off
+    ProxyPass / http://127.0.0.1:3000/ connectiontimeout=300 timeout=300
+    ProxyPassReverse / http://127.0.0.1:3000/
+</IfModule>
+
+DirectoryIndex index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ server.js [L]

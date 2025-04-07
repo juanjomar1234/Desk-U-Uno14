@@ -1,42 +1,11 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test de Acceso</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-        .status {
-            padding: 10px;
-            background: #e8f5e9;
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-    </style>
+  <title>Next.js App</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-    <div class="container">
-        <h1>Página de Prueba</h1>
-        <div class="status">
-            ✅ Si puedes ver esto, el servidor está funcionando correctamente
-        </div>
-        <p>Esta es una página estática de prueba para verificar el acceso al subdominio.</p>
-        <p>Timestamp: <span id="timestamp"></span></p>
-    </div>
-    <script>
-        document.getElementById('timestamp').textContent = new Date().toLocaleString();
-    </script>
+  <div id="__next"></div>
 </body>
 </html> 

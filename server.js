@@ -13,7 +13,7 @@ function checkEnvVariables() {
 
 checkEnvVariables();
 
-const dev = false
+const dev = process.env.NODE_ENV !== 'production'
 const hostname = '127.0.0.1'
 const port = parseInt(process.env.PORT || '3000', 10)
 
