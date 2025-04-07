@@ -33,18 +33,22 @@ jobs:
           cp package.json deploy/
           cp package-lock.json deploy/
           [ -f .env ] && cp .env deploy/ || true
+
+          # 3. Instalar dependencias de producción
+          cd deploy
+          npm install --omit=dev
           
-          # 3. Crear y copiar carpetas
-          mkdir -p deploy/.next/{server,static}
-          cp -r .next/static/* deploy/.next/static/
-          cp -r .next/server/* deploy/.next/server/
+          # 4. Crear y copiar carpetas
+          mkdir -p .next/{server,static}
+          cp -r ../.next/static/* .next/static/
+          cp -r ../.next/server/* .next/server/
           
-          mkdir -p deploy/src/app/api/health
-          cp src/app/api/health/route.ts deploy/src/app/api/health/
-          cp src/middleware.ts deploy/src/
+          mkdir -p src/app/api/health
+          cp ../src/app/api/health/route.ts src/app/api/health/
+          cp ../src/middleware.ts src/
           
-          mkdir -p deploy/public
-          cp public/index.html deploy/public/
+          mkdir -p public
+          cp ../public/index.html public/
         
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
