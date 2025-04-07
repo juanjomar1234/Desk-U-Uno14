@@ -20,8 +20,20 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Return to root directory
-        run: cd $GITHUB_WORKSPACE
+      - name: Prepare deploy files
+        run: |
+          mkdir -p deploy/src/app/api/health deploy/public
+          cp -r .next/* deploy/.next/
+          cp next.config.js deploy/
+          cp .htaccess deploy/
+          cp server.js deploy/
+          cp src/app/api/health/route.ts deploy/src/app/api/health/
+          cp src/middleware.ts deploy/src/
+          cp ecosystem.config.js deploy/
+          cp .env deploy/
+          cp public/index.html deploy/public/
+          cp package.json deploy/
+          cp package-lock.json deploy/
         
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
@@ -31,18 +43,8 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /
           port: 21
-          local-dir: ./
+          local-dir: ./deploy/
           exclude: |
-            **/*
-            !.next/
-            !.next/**
-            !package.json
-            !package-lock.json
-            !next.config.js
-            !ecosystem.config.js
-            !.htaccess
-            !server.js
-            !src/middleware.ts
-            !src/app/api/health/route.ts
-            !public/index.html
-            !.env
+            **/.git*
+            **/.git*/**
+            **/.github/**
