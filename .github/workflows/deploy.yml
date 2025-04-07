@@ -25,7 +25,15 @@ jobs:
           mkdir -p deploy/src/app/api/health
           mkdir -p deploy/public
           mkdir -p deploy/.next
-          cp -r .next/* deploy/.next/
+          if [ -d ".next/standalone" ]; then
+            cp -r .next/standalone/* deploy/
+          fi
+          if [ -d ".next/static" ]; then
+            cp -r .next/static deploy/.next/
+          fi
+          if [ -d ".next/server" ]; then
+            cp -r .next/server deploy/.next/
+          fi
           cp next.config.js deploy/
           cp .htaccess deploy/
           cp server.js deploy/
