@@ -22,28 +22,29 @@ jobs:
 
       - name: Prepare deploy files
         run: |
-          mkdir -p deploy/src/app/api/health
-          mkdir -p deploy/public
-          mkdir -p deploy/.next
-          if [ -d ".next/standalone" ]; then
-            cp -r .next/standalone/* deploy/
-          fi
-          if [ -d ".next/static" ]; then
-            cp -r .next/static deploy/.next/
-          fi
-          if [ -d ".next/server" ]; then
-            cp -r .next/server deploy/.next/
-          fi
+          # 1. Crear carpeta deploy
+          mkdir deploy
+          
+          # 2. Copiar archivos de la raíz
           cp next.config.js deploy/
           cp .htaccess deploy/
           cp server.js deploy/
-          cp src/app/api/health/route.ts deploy/src/app/api/health/
-          cp src/middleware.ts deploy/src/
           cp ecosystem.config.js deploy/
-          [ -f .env ] && cp .env deploy/ || true
-          cp public/index.html deploy/public/
           cp package.json deploy/
           cp package-lock.json deploy/
+          [ -f .env ] && cp .env deploy/ || true
+          
+          # 3. Crear y copiar carpetas
+          mkdir -p deploy/.next/{server,static}
+          cp -r .next/static/* deploy/.next/static/
+          cp -r .next/server/* deploy/.next/server/
+          
+          mkdir -p deploy/src/app/api/health
+          cp src/app/api/health/route.ts deploy/src/app/api/health/
+          cp src/middleware.ts deploy/src/
+          
+          mkdir -p deploy/public
+          cp public/index.html deploy/public/
         
       - name: Deploy to production
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
