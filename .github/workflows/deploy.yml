@@ -32,7 +32,7 @@ jobs:
           cp src/app/api/health/route.ts deploy/src/app/api/health/
           cp src/middleware.ts deploy/src/
           cp ecosystem.config.js deploy/
-          cp .env deploy/
+          [ -f .env ] && cp .env deploy/ || true
           cp public/index.html deploy/public/
           cp package.json deploy/
           cp package-lock.json deploy/
