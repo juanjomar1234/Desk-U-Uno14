@@ -22,7 +22,7 @@ jobs:
 
       - name: Prepare deploy files
         run: |
-          mkdir -p deploy/src/app/api/health deploy/public
+          md deploy\src\app\api\health deploy\public deploy\.next
           cp -r .next/* deploy/.next/
           cp next.config.js deploy/
           cp .htaccess deploy/
